@@ -70,9 +70,11 @@ class RunningGameView(parms: SimulationParameter? = null): View("Game Of Life"),
             }
         }
         can.onMouseClicked = EventHandler { event ->
-            val x = (event.x.toInt() / ratio).toInt()
-            val y = (event.y.toInt() / ratio).toInt()
-            simulationManager?.invert(x, y)
+            if (!started) {
+                val x = (event.x.toInt() / ratio).toInt()
+                val y = (event.y.toInt() / ratio).toInt()
+                simulationManager?.invert(x, y)
+            }
         }
         primaryStage.onCloseRequest = EventHandler {
             if (started) {

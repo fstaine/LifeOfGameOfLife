@@ -9,7 +9,7 @@ enum class LogLevel {
 }
 
 object Logger {
-    var level: LogLevel = LogLevel.VERBS
+    var level: LogLevel = LogLevel.DEBUG
 
     @Synchronized
     private fun log(lvl: LogLevel, msg: Any) {
