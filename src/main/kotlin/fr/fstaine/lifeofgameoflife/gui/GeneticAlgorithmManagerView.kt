@@ -18,11 +18,10 @@ import kotlin.math.roundToInt
 class GeneticAlgorithmManagerView : View("Genetic Algorithm") {
 
     private val genomeParams: GenomeParameter = GenomeParameter(
-        boardSize = 50,
+        boardSize = 100,
         individualMaxSize = 12,
-        liveProbability = 0.1,
-        liveProbabilityPropagation =
-        ProbabilityPropagation.CONSTANT
+        liveProbability = 0.3,
+        liveProbabilityPropagation = ProbabilityPropagation.CONSTANT
     )
 
     private val gaExecutor: GeneticAlgorithmExecutor = GeneticAlgorithmExecutor(genomeParams)
@@ -76,6 +75,7 @@ class GeneticAlgorithmManagerView : View("Genetic Algorithm") {
     }
 
     private fun updatePopulationScores() {
+        var fitnessSum: Double = 0.0
         gaExecutor.population.forEachIndexed { index, individual ->
             val results = gaExecutor.getResult(individual)
 
@@ -86,7 +86,11 @@ class GeneticAlgorithmManagerView : View("Genetic Algorithm") {
                     label.style = "-fx-text-fill: red;"
                 }
                 populationView.add(label, 1, index + 1)
+                fitnessSum += res.fitness
             }
         }
+        var fitnessMean = fitnessSum / gaExecutor.population.size
+        populationView.add( Label("Mean: "), 0, gaExecutor.population.size + 1)
+        populationView.add( Label("${fitnessMean.roundToInt()}"), 1, gaExecutor.population.size + 1)
     }
 }
