@@ -47,7 +47,7 @@ class RunningGameView: View("Game Of Life"), Observer {
         gc = can.graphicsContext2D
         gc.stroke = Color.GREY
         playPauseBtn.font = Font(17.0)
-        can.onKeyPressed = EventHandler { event ->
+        onKeyPressed = EventHandler { event ->
             if (event.code == KeyCode.ENTER) {
                 if (started) {
                     stopGame()
@@ -112,7 +112,7 @@ class RunningGameView: View("Game Of Life"), Observer {
     private fun stopGame() {
         timer.cancel()
         Platform.runLater {
-            playPauseBtn.text = "Play"
+            playPauseBtn.text = "Play (enter)"
         }
         started = false
     }
