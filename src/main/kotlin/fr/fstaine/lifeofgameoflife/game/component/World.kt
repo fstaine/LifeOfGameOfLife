@@ -37,6 +37,14 @@ data class World(val size: Int, var cells: Array<Array<WorldCell>>) {
     }
 
     /**
+     * Safe get:
+     * Get a cell if it is in the world, null otherwise
+     */
+    operator fun get(pos: Position): WorldCell? {
+        return this[pos.x, pos.y]
+    }
+
+    /**
      * Update a cell in the world at index (i, j)
      */
     operator fun set(i: Int, j: Int, value: WorldCell) {

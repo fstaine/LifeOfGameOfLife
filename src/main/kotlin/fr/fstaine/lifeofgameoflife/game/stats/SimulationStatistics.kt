@@ -4,7 +4,7 @@ import fr.fstaine.lifeofgameoflife.game.component.Position
 import fr.fstaine.lifeofgameoflife.game.component.World
 import java.lang.Integer.max
 
-data class GameStatistics (
+data class SimulationStatistics (
     /**
      *  The size of the world
      */

@@ -1,11 +1,14 @@
 package fr.fstaine.lifeofgameoflife.gui
 
-import fr.fstaine.lifeofgameoflife.game.Game
-import fr.fstaine.lifeofgameoflife.game.NormalGame
+import fr.fstaine.lifeofgameoflife.game.Simulation
+import fr.fstaine.lifeofgameoflife.game.NormalSimulation
+import fr.fstaine.lifeofgameoflife.game.SimulationParameter
 import fr.fstaine.lifeofgameoflife.game.component.World
 import fr.fstaine.lifeofgameoflife.game.component.WorldCell
 import fr.fstaine.lifeofgameoflife.game.component.WorldCellState
-import fr.fstaine.lifeofgameoflife.game.stats.GameStatistics
+import fr.fstaine.lifeofgameoflife.game.stats.SimulationStatistics
+import fr.fstaine.lifeofgameoflife.persistence.ManualSimulationFileStorage
+import fr.fstaine.lifeofgameoflife.persistence.SimulationStorage
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.scene.canvas.Canvas
@@ -29,16 +32,21 @@ class RunningGameView: View("Game Of Life"), Observer {
     private lateinit var gc: GraphicsContext
 
     private val playPauseBtn = Button("Play (enter)")
+    private val saveBtn = Button("Save")
+    private val loadBtn = Button("Load")
     private val statsView = GameStatisticsView()
     private val optionsView = OptionView()
 
-    private var gameManager: Game? = null
+    private val fileStorage: SimulationStorage = ManualSimulationFileStorage()
+    private var simulationManager: Simulation? = null
     var timer: Timer = Timer()
     private var started = false
 
     override val root = hbox {
         vbox {
             playPauseBtn.attachTo(this)
+            saveBtn.attachTo(this)
+            loadBtn.attachTo(this)
             statsView.attachTo(this)
             optionsView.attachTo(this)
         }
@@ -47,6 +55,8 @@ class RunningGameView: View("Game Of Life"), Observer {
         gc = can.graphicsContext2D
         gc.stroke = Color.GREY
         playPauseBtn.font = Font(17.0)
+        saveBtn.font = Font(17.0)
+        loadBtn.font = Font(17.0)
         onKeyPressed = EventHandler { event ->
             if (event.code == KeyCode.ENTER) {
                 if (started) {
@@ -55,17 +65,29 @@ class RunningGameView: View("Game Of Life"), Observer {
                     startGame()
                 }
             } else if (event.code == KeyCode.C) {
-                gameManager?.clean()
+                simulationManager?.clean()
             }
         }
         can.onMouseClicked = EventHandler { event ->
             val x = (event.x.toInt() / ratio).toInt()
             val y = (event.y.toInt() / ratio).toInt()
-            gameManager?.invert(x, y)
+            simulationManager?.invert(x, y)
         }
         primaryStage.onCloseRequest = EventHandler {
             if (started) {
                 stopGame()
+            }
+        }
+
+        saveBtn.action {
+            simulationManager?.let {
+                fileStorage.store(it)
+            }
+        }
+
+        loadBtn.action {
+            fileStorage.load("")?.let {
+                initGame(it)
             }
         }
 
@@ -80,12 +102,12 @@ class RunningGameView: View("Game Of Life"), Observer {
         initGame()
     }
 
-    private fun initGame() {
-        gameManager = NormalGame(size)
-        gameManager?.addObserver(this)
+    private fun initGame(params: SimulationParameter = SimulationParameter(size)) {
+        simulationManager = NormalSimulation(params)
+        simulationManager?.addObserver(this)
         ratio = 1.0 * windowSize / size
 
-        gameManager?.let { realGame ->
+        simulationManager?.let { realGame ->
             Platform.runLater {
                 draw(realGame.world)
                 updateStats(realGame.stats)
@@ -97,14 +119,16 @@ class RunningGameView: View("Game Of Life"), Observer {
         timer = Timer()
         timer.schedule(object : TimerTask() {
             override fun run() {
-                gameManager?.update()
-                if (gameManager?.isBlocked != false) {
+                simulationManager?.update()
+                if (simulationManager?.isBlocked != false) {
                     stopGame()
                 }
             }
         }, 0, delay.toLong())
         Platform.runLater {
             playPauseBtn.text = "Pause"
+            loadBtn.isDisable = true
+            loadBtn.isDisable = true
         }
         started = true
     }
@@ -113,6 +137,8 @@ class RunningGameView: View("Game Of Life"), Observer {
         timer.cancel()
         Platform.runLater {
             playPauseBtn.text = "Play (enter)"
+            loadBtn.isDisable = false
+            loadBtn.isDisable = false
         }
         started = false
     }
@@ -143,7 +169,7 @@ class RunningGameView: View("Game Of Life"), Observer {
     /**
      * Update the statistics board of the game
      */
-    private fun updateStats(stats: GameStatistics) {
+    private fun updateStats(stats: SimulationStatistics) {
         this.statsView.update(stats)
     }
 
@@ -151,7 +177,7 @@ class RunningGameView: View("Game Of Life"), Observer {
      * Update the whole view according to the current game state
      */
     private fun updateGameView() {
-        gameManager?.let { realGame ->
+        simulationManager?.let { realGame ->
             Platform.runLater {
                 draw(realGame.world)
                 updateStats(realGame.stats)

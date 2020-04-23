@@ -1,6 +1,6 @@
 package fr.fstaine.lifeofgameoflife.gui
 
-import fr.fstaine.lifeofgameoflife.game.stats.GameStatistics
+import fr.fstaine.lifeofgameoflife.game.stats.SimulationStatistics
 import fr.fstaine.lifeofgameoflife.genetic.fitness.DefaultFitnessComputer
 import javafx.scene.Node
 import javafx.scene.control.CheckBox
@@ -61,7 +61,7 @@ class GameStatisticsView : Pane() {
 
     /* Public methods */
 
-    fun update(stats: GameStatistics) {
+    fun update(stats: SimulationStatistics) {
         this.sizeLabel.text = "${stats.size}"
         this.stepLabel.text = "${stats.step}"
 

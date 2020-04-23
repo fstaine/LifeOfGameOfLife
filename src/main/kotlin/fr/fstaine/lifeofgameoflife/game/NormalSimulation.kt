@@ -1,13 +1,14 @@
 package fr.fstaine.lifeofgameoflife.game
 
+import fr.fstaine.lifeofgameoflife.game.component.Position
 import fr.fstaine.lifeofgameoflife.game.component.World
 import fr.fstaine.lifeofgameoflife.game.component.WorldCell
 import fr.fstaine.lifeofgameoflife.game.component.WorldCellState
-import fr.fstaine.lifeofgameoflife.game.stats.GameStatistics
+import fr.fstaine.lifeofgameoflife.game.stats.SimulationStatistics
 import java.util.*
 import java.util.stream.Stream
 
-class NormalGame(val size: Int): Game, Observable() {
+class NormalSimulation(val params: SimulationParameter): Simulation, Observable() {
 
     /**
      * Indicate which board is the current one
@@ -17,10 +18,10 @@ class NormalGame(val size: Int): Game, Observable() {
     /**
      * Two mutable boards which alternatively represent the current or the previous state of the world
      */
-    private var board1: World = World.empty(size)
-    private var board2: World = World.empty(size)
+    private var board1: World = World.empty(params.size)
+    private var board2: World = World.empty(params.size)
 
-    private var _stats: GameStatistics = GameStatistics(size, emptySet())
+    private lateinit var _stats: SimulationStatistics
 
     /**
      * The board which represent the current representation of the world
@@ -51,7 +52,7 @@ class NormalGame(val size: Int): Game, Observable() {
     /**
      * The statistics of the current game
      */
-    override val stats: GameStatistics get() = _stats
+    override val stats: SimulationStatistics get() = _stats
 
     /**
      * Return the current world
@@ -59,6 +60,11 @@ class NormalGame(val size: Int): Game, Observable() {
     override val world: World
         get() {
         return this.currentBoard
+    }
+
+    init {
+        initCells(params.initial)
+        initStats()
     }
 
     /******************/
@@ -71,8 +77,8 @@ class NormalGame(val size: Int): Game, Observable() {
     override fun update() {
         val next = this.otherBoard
         val current = this.currentBoard
-        for (i in 0 until size) {
-            for (j in 0 until size) {
+        for (i in 0 until params.size) {
+            for (j in 0 until params.size) {
                 next[i, j] = update(current, i, j)
             }
         }
@@ -155,7 +161,7 @@ class NormalGame(val size: Int): Game, Observable() {
      * Init the statistics with the current state of the game
      */
     private fun initStats() {
-        _stats = GameStatistics(size, world.livingCellsPositionIterable.toSet())
+        _stats = SimulationStatistics(params.size, world.livingCellsPositionIterable.toSet())
     }
 
     /**
@@ -164,5 +170,16 @@ class NormalGame(val size: Int): Game, Observable() {
      */
     private fun updateStats() {
         _stats.update(otherBoard, currentBoard)
+    }
+
+    /**
+     * Update the cells for the given list of initial positions
+     */
+    private fun initCells(cells: Set<Position>) {
+        for (pos in cells) {
+            currentBoard[pos]?.livingCopy()?.let {
+                manuallySetCell(pos.x, pos.y, it)
+            }
+        }
     }
 }

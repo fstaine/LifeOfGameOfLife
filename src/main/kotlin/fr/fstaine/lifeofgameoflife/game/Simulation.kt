@@ -1,14 +1,14 @@
 package fr.fstaine.lifeofgameoflife.game
 
 import fr.fstaine.lifeofgameoflife.game.component.World
-import fr.fstaine.lifeofgameoflife.game.stats.GameStatistics
+import fr.fstaine.lifeofgameoflife.game.stats.SimulationStatistics
 import java.util.*
 
-interface Game {
+interface Simulation {
     /**
      * The statistics of the current game
      */
-    val stats: GameStatistics
+    val stats: SimulationStatistics
 
     /**
      * Return the current world
