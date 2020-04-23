@@ -1,5 +1,6 @@
 package fr.fstaine.lifeofgameoflife.genetic
 
+import fr.fstaine.lifeofgameoflife.genetic.utils.ProbabilityPropagation
 import fr.fstaine.lifeofgameoflife.genetic.utils.ProbabilityPropagationFunction
 
 /**
@@ -9,6 +10,12 @@ import fr.fstaine.lifeofgameoflife.genetic.utils.ProbabilityPropagationFunction
  * Neighbors points are
  */
 data class GenomeParameter(
+
+    /**
+     * The size of the board
+     */
+    val boardSize: Int,
+
     /**
      * The maximum size that an individual can take.
      * It's always a squared box
@@ -22,9 +29,9 @@ data class GenomeParameter(
     val liveProbability: Double,
 
     /**
-     * The probability
+     * How is computed the probability to live for each cell
      */
-    val liveProbabilityPropagation: ProbabilityPropagationFunction
+    val liveProbabilityPropagation: ProbabilityPropagation
 ) {
 
 }

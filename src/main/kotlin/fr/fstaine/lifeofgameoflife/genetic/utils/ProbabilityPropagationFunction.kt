@@ -3,6 +3,11 @@ package fr.fstaine.lifeofgameoflife.genetic.utils
 import fr.fstaine.lifeofgameoflife.game.component.Position
 import kotlin.math.abs
 
+enum class ProbabilityPropagation(val func: ProbabilityPropagationFunction) {
+    CONSTANT(ConstantProbabilityPropagationFunction()),
+    VERTICALLY_CONSTANT(VerticallyCenteredConstantProbabilityPropagationFunction())
+}
+
 interface ProbabilityPropagationFunction {
     fun probability(size: Int, initialValue: Double, at: Position) : Double
 }

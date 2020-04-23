@@ -3,6 +3,7 @@ package fr.fstaine.lifeofgameoflife.gui
 import fr.fstaine.lifeofgameoflife.game.Simulation
 import fr.fstaine.lifeofgameoflife.game.NormalSimulation
 import fr.fstaine.lifeofgameoflife.game.SimulationParameter
+import fr.fstaine.lifeofgameoflife.game.component.Position
 import fr.fstaine.lifeofgameoflife.game.component.World
 import fr.fstaine.lifeofgameoflife.game.component.WorldCell
 import fr.fstaine.lifeofgameoflife.game.component.WorldCellState
@@ -20,7 +21,7 @@ import javafx.scene.text.Font
 import tornadofx.*
 import java.util.*
 
-class RunningGameView: View("Game Of Life"), Observer {
+class RunningGameView(parms: SimulationParameter? = null): View("Game Of Life"), Observer {
 
     private var size = 50
     private var windowSize = 1000
@@ -102,7 +103,14 @@ class RunningGameView: View("Game Of Life"), Observer {
         initGame()
     }
 
+    init {
+        parms?.let {
+            initGame(it)
+        }
+    }
+
     private fun initGame(params: SimulationParameter = SimulationParameter(size)) {
+        size = params.size
         simulationManager = NormalSimulation(params)
         simulationManager?.addObserver(this)
         ratio = 1.0 * windowSize / size

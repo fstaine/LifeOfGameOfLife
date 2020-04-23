@@ -1,7 +1,7 @@
 package fr.fstaine.lifeofgameoflife.genetic
 
-import fr.fstaine.lifeofgameoflife.game.component.Position
+import fr.fstaine.lifeofgameoflife.game.SimulationParameter
 
-data class Individual(val shape: Set<Position>) {
+data class Individual(val params: SimulationParameter) {
 
 }

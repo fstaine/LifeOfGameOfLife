@@ -12,7 +12,7 @@ object Logger {
     var level: LogLevel = LogLevel.VERBS
 
     @Synchronized
-    private fun log(lvl: LogLevel, msg: String) {
+    private fun log(lvl: LogLevel, msg: Any) {
         if (level.ordinal <= lvl.ordinal) {
             val cls: String = Throwable().stackTrace[2].className.split(".").last()
             val method: String = Throwable().stackTrace[2].methodName
@@ -20,19 +20,19 @@ object Logger {
         }
     }
 
-    fun v(msg: String) {
+    fun v(msg: Any) {
         log(LogLevel.VERBS, msg)
     }
 
-    fun d(msg: String) {
+    fun d(msg: Any) {
         log(LogLevel.DEBUG, msg)
     }
 
-    fun w(msg: String) {
+    fun w(msg: Any) {
         log(LogLevel.WARNG, msg)
     }
 
-    fun e(msg: String) {
+    fun e(msg: Any) {
         log(LogLevel.ERROR, msg)
     }
 }

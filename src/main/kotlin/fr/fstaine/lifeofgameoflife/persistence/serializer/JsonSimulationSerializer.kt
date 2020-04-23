@@ -20,7 +20,7 @@ private data class JsonSavedGame(val size: Int, val initial: Set<Position>, val 
 }
 
 /**
- * parse a simulation from / to as JSON content
+ * Parse a simulation from / to as JSON content
  */
 class JsonSimulationSerializer {
 
