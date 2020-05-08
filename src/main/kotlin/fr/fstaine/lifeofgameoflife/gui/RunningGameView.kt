@@ -3,11 +3,12 @@ package fr.fstaine.lifeofgameoflife.gui
 import fr.fstaine.lifeofgameoflife.game.Simulation
 import fr.fstaine.lifeofgameoflife.game.NormalSimulation
 import fr.fstaine.lifeofgameoflife.game.SimulationParameter
-import fr.fstaine.lifeofgameoflife.game.component.Position
 import fr.fstaine.lifeofgameoflife.game.component.World
 import fr.fstaine.lifeofgameoflife.game.component.WorldCell
 import fr.fstaine.lifeofgameoflife.game.component.WorldCellState
 import fr.fstaine.lifeofgameoflife.game.stats.SimulationStatistics
+import fr.fstaine.lifeofgameoflife.gui.components.GameStatisticsView
+import fr.fstaine.lifeofgameoflife.gui.components.OptionView
 import fr.fstaine.lifeofgameoflife.persistence.ManualSimulationFileStorage
 import fr.fstaine.lifeofgameoflife.persistence.SimulationStorage
 import javafx.application.Platform
@@ -25,7 +26,7 @@ class RunningGameView(parms: SimulationParameter? = null): View("Game Of Life"),
 
     private var size = 50
     private var windowSize = 1000
-    private var delay = 200
+    private var delay = 80
 
     private var ratio = 0.0
 
@@ -134,7 +135,7 @@ class RunningGameView(parms: SimulationParameter? = null): View("Game Of Life"),
                     stopGame()
                 }
             }
-        }, 0, delay.toLong())
+        }, 0, optionsView.delayProperty.longValue())
         Platform.runLater {
             playPauseBtn.text = "Pause"
             loadBtn.isDisable = true

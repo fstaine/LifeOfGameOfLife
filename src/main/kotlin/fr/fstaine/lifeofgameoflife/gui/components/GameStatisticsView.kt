@@ -1,4 +1,4 @@
-package fr.fstaine.lifeofgameoflife.gui
+package fr.fstaine.lifeofgameoflife.gui.components
 
 import fr.fstaine.lifeofgameoflife.game.stats.SimulationStatistics
 import fr.fstaine.lifeofgameoflife.genetic.fitness.DefaultFitnessComputer
