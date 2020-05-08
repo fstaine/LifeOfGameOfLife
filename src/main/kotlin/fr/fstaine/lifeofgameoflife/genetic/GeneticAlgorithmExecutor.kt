@@ -52,7 +52,7 @@ class GeneticAlgorithmExecutor(val params: GenomeParameter) : GeneticRunner {
     var populationResults: ConcurrentMap<Individual, SimulationResults> = ConcurrentHashMap()
 
     override fun initPopulation() {
-        val initPop = popGenerator.generatePopulation(20) // TODO: Pass it in params
+        val initPop = popGenerator.generatePopulation(params.populationSize)
         Logger.v("Initial population:")
         initPop.forEach {
             Logger.v(it)
@@ -68,7 +68,7 @@ class GeneticAlgorithmExecutor(val params: GenomeParameter) : GeneticRunner {
                 populationResults[individual] = result
             })
         }
-        executorService.awaitTermination(1, TimeUnit.SECONDS)
+        executorService.awaitTermination(params.individualTimeout, TimeUnit.MILLISECONDS)
     }
 
     override fun generateDescendants() {

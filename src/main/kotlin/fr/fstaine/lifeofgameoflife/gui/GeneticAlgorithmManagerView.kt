@@ -3,14 +3,15 @@ package fr.fstaine.lifeofgameoflife.gui
 import fr.fstaine.lifeofgameoflife.genetic.GeneticAlgorithmExecutor
 import fr.fstaine.lifeofgameoflife.genetic.GenomeParameter
 import fr.fstaine.lifeofgameoflife.genetic.Individual
-import fr.fstaine.lifeofgameoflife.genetic.utils.ProbabilityPropagation
+import fr.fstaine.lifeofgameoflife.genetic.initial.ProbabilityPropagation
 import fr.fstaine.lifeofgameoflife.utils.Logger
+import javafx.application.Platform
+import javafx.event.EventHandler
 import javafx.scene.Scene
 import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.Pane
-import javafx.scene.layout.VBox
 import javafx.stage.Stage
 import tornadofx.*
 import kotlin.math.roundToInt
@@ -18,10 +19,12 @@ import kotlin.math.roundToInt
 class GeneticAlgorithmManagerView : View("Genetic Algorithm") {
 
     private val genomeParams: GenomeParameter = GenomeParameter(
+        populationSize = 20,
         boardSize = 100,
         individualMaxSize = 12,
         liveProbability = 0.3,
-        liveProbabilityPropagation = ProbabilityPropagation.CONSTANT
+        liveProbabilityPropagation = ProbabilityPropagation.CONSTANT,
+        individualTimeout = 20000
     )
 
     private val gaExecutor: GeneticAlgorithmExecutor = GeneticAlgorithmExecutor(genomeParams)
@@ -51,6 +54,9 @@ class GeneticAlgorithmManagerView : View("Genetic Algorithm") {
 
             }
         }
+        primaryStage.onCloseRequest = EventHandler {
+            Platform.exit()
+        }
     }
 
     private fun updatePopulationView() {
@@ -70,7 +76,7 @@ class GeneticAlgorithmManagerView : View("Genetic Algorithm") {
         Logger.d("$individual")
         val v = RunningGameView(individual.params)
         val stage = Stage()
-        stage.scene = Scene(v.root, 1200.0, 1000.0)
+        stage.scene = Scene(v.root, 1300.0, 1000.0)
         stage.show()
     }
 
@@ -78,7 +84,6 @@ class GeneticAlgorithmManagerView : View("Genetic Algorithm") {
         var fitnessSum: Double = 0.0
         gaExecutor.population.forEachIndexed { index, individual ->
             val results = gaExecutor.getResult(individual)
-
 
             results?.let { res ->
                 val label = Label("${res.fitness.roundToInt()}")
@@ -89,7 +94,7 @@ class GeneticAlgorithmManagerView : View("Genetic Algorithm") {
                 fitnessSum += res.fitness
             }
         }
-        var fitnessMean = fitnessSum / gaExecutor.population.size
+        val fitnessMean = fitnessSum / gaExecutor.population.size
         populationView.add( Label("Mean: "), 0, gaExecutor.population.size + 1)
         populationView.add( Label("${fitnessMean.roundToInt()}"), 1, gaExecutor.population.size + 1)
     }
