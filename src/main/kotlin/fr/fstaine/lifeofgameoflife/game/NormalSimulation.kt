@@ -62,6 +62,11 @@ class NormalSimulation(val params: SimulationParameter): Simulation, Observable(
         return this.currentBoard
     }
 
+    /**
+     * Indicate that the simulation won't produce any new state
+     */
+    override val isBlocked: Boolean get() = this.stats.isBlocked || this.stats.isLooping
+
     init {
         initCells(params.initial)
         initStats()
@@ -71,16 +76,23 @@ class NormalSimulation(val params: SimulationParameter): Simulation, Observable(
     /* Public methods */
     /******************/
 
+    fun restart() {
+        cleanCells()
+        initCells(params.initial)
+        initStats()
+        setChanged()
+        notifyObservers()
+    }
+
     /**
      * Update the world to it's next state
      */
     override fun update() {
         val next = this.otherBoard
         val current = this.currentBoard
-        for (i in 0 until params.size) {
-            for (j in 0 until params.size) {
-                next[i, j] = update(current, i, j)
-            }
+        for (pos in world.positionIterable) {
+            val (i, j) = pos
+            next[i, j] = update(current, i, j)
         }
         this.first = !this.first
         updateStats()
@@ -92,12 +104,7 @@ class NormalSimulation(val params: SimulationParameter): Simulation, Observable(
      * Clean all the cells (Make them all dead)
      */
     override fun clean() {
-        for (pos in world.positionIterable) {
-            val (i, j) = pos
-            this.manuallySetCell(i, j,
-                WorldCell(WorldCellState.DEAD)
-            )
-        }
+        cleanCells()
         initStats()
         setChanged()
         notifyObservers()
@@ -125,6 +132,18 @@ class NormalSimulation(val params: SimulationParameter): Simulation, Observable(
     /*******************/
     /* Private methods */
     /*******************/
+
+    /**
+     * Remove all the living cells in the board
+     */
+    private fun cleanCells() {
+        for (pos in world.livingCellsPositionIterable) {
+            val (i, j) = pos
+            this.manuallySetCell(i, j,
+                WorldCell(WorldCellState.DEAD)
+            )
+        }
+    }
 
     /**
      * Update the cell at the given position (i, j) in the given world

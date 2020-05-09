@@ -15,7 +15,10 @@ interface Simulation {
      */
     val world: World
 
-    val isBlocked: Boolean get() = this.stats.isBlocked || this.stats.isLooping
+    /**
+     * Indicate if the world is blocked, i.e. if it won't produce any new state
+     */
+    val isBlocked: Boolean
 
     /**
      * Update the world to it's next state

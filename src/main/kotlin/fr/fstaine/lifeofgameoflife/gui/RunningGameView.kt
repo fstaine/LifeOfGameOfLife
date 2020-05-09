@@ -1,6 +1,5 @@
 package fr.fstaine.lifeofgameoflife.gui
 
-import fr.fstaine.lifeofgameoflife.game.Simulation
 import fr.fstaine.lifeofgameoflife.game.NormalSimulation
 import fr.fstaine.lifeofgameoflife.game.SimulationParameter
 import fr.fstaine.lifeofgameoflife.game.component.World
@@ -12,6 +11,10 @@ import fr.fstaine.lifeofgameoflife.gui.components.OptionView
 import fr.fstaine.lifeofgameoflife.persistence.ManualSimulationFileStorage
 import fr.fstaine.lifeofgameoflife.persistence.SimulationStorage
 import javafx.application.Platform
+import javafx.beans.binding.StringBinding
+import javafx.beans.property.BooleanProperty
+import javafx.beans.property.BooleanPropertyBase
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.event.EventHandler
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
@@ -22,7 +25,7 @@ import javafx.scene.text.Font
 import tornadofx.*
 import java.util.*
 
-class RunningGameView(parms: SimulationParameter? = null): View("Game Of Life"), Observer {
+class RunningGameView(simulationParms: SimulationParameter? = null): View("Game Of Life"), Observer {
 
     private var size = 50
     private var windowSize = 1000
@@ -34,19 +37,22 @@ class RunningGameView(parms: SimulationParameter? = null): View("Game Of Life"),
     private lateinit var gc: GraphicsContext
 
     private val playPauseBtn = Button("Play (enter)")
+    private val restartBtn = Button("Restart")
     private val saveBtn = Button("Save")
     private val loadBtn = Button("Load")
     private val statsView = GameStatisticsView()
     private val optionsView = OptionView()
 
     private val fileStorage: SimulationStorage = ManualSimulationFileStorage()
-    private var simulationManager: Simulation? = null
+    private var simulationManager: NormalSimulation? = null
     var timer: Timer = Timer()
-    private var started = false
+
+    private var started: BooleanProperty = SimpleBooleanProperty(false)
 
     override val root = hbox {
         vbox {
             playPauseBtn.attachTo(this)
+            restartBtn.attachTo(this)
             saveBtn.attachTo(this)
             loadBtn.attachTo(this)
             statsView.attachTo(this)
@@ -57,30 +63,30 @@ class RunningGameView(parms: SimulationParameter? = null): View("Game Of Life"),
         gc = can.graphicsContext2D
         gc.stroke = Color.GREY
         playPauseBtn.font = Font(17.0)
+        restartBtn.font = Font(17.0)
         saveBtn.font = Font(17.0)
         loadBtn.font = Font(17.0)
         onKeyPressed = EventHandler { event ->
-            if (event.code == KeyCode.ENTER) {
-                if (started) {
-                    stopGame()
-                } else {
-                    startGame()
-                }
-            } else if (event.code == KeyCode.C) {
-                simulationManager?.clean()
+            when(event.code) {
+                KeyCode.ENTER -> onPlayPause()
+                KeyCode.C -> simulationManager?.clean()
+                KeyCode.R -> simulationManager?.restart()
+                KeyCode.RIGHT -> simulationManager?.update()
             }
         }
         can.onMouseClicked = EventHandler { event ->
-            if (!started) {
+            if (!started.get()) {
                 val x = (event.x.toInt() / ratio).toInt()
                 val y = (event.y.toInt() / ratio).toInt()
                 simulationManager?.invert(x, y)
             }
         }
         primaryStage.onCloseRequest = EventHandler {
-            if (started) {
-                stopGame()
-            }
+            stopGame()
+        }
+
+        restartBtn.action {
+            simulationManager?.restart()
         }
 
         saveBtn.action {
@@ -96,23 +102,47 @@ class RunningGameView(parms: SimulationParameter? = null): View("Game Of Life"),
         }
 
         playPauseBtn.onAction = EventHandler {
-            if (started) {
-                stopGame()
-            } else {
-                startGame()
-            }
+            onPlayPause()
         }
 
-        initGame()
+        linkViewProperties()
     }
 
     init {
-        parms?.let {
-            initGame(it)
+        initGame(simulationParms ?: SimulationParameter(size))
+    }
+
+    /**
+     * Link the different view' elements
+     */
+    private fun linkViewProperties() {
+        saveBtn.disableProperty().bind(started)
+        loadBtn.disableProperty().bind(started)
+        restartBtn.disableProperty().bind(started)
+
+        playPauseBtn.textProperty().bind(object: StringBinding() {
+            init {
+                super.bind(started)
+            }
+
+            override fun computeValue(): String {
+                return if (started.get()) "Pause" else "Play (enter)"
+            }
+        })
+    }
+
+    /**
+     * Action to perform to play or pause the game
+     */
+    private fun onPlayPause() {
+        if (started.get()) {
+            stopGame()
+        } else {
+            startGame()
         }
     }
 
-    private fun initGame(params: SimulationParameter = SimulationParameter(size)) {
+    private fun initGame(params: SimulationParameter) {
         size = params.size
         simulationManager = NormalSimulation(params)
         simulationManager?.addObserver(this)
@@ -130,28 +160,22 @@ class RunningGameView(parms: SimulationParameter? = null): View("Game Of Life"),
         timer = Timer()
         timer.schedule(object : TimerTask() {
             override fun run() {
-                simulationManager?.update()
-                if (simulationManager?.isBlocked != false) {
-                    stopGame()
+                simulationManager?.let { sim ->
+                    sim.update()
+                    if (sim.isBlocked) {
+                        stopGame()
+                    }
                 }
             }
         }, 0, optionsView.delayProperty.longValue())
-        Platform.runLater {
-            playPauseBtn.text = "Pause"
-            loadBtn.isDisable = true
-            loadBtn.isDisable = true
-        }
-        started = true
+        started.value = true
     }
 
     private fun stopGame() {
-        timer.cancel()
-        Platform.runLater {
-            playPauseBtn.text = "Play (enter)"
-            loadBtn.isDisable = false
-            loadBtn.isDisable = false
+        if (started.get()) {
+            timer.cancel()
+            started.value = false
         }
-        started = false
     }
 
     /**
